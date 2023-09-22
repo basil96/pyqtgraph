@@ -493,6 +493,10 @@ class ViewBox(GraphicsWidget):
             self.sigStateChanged.emit(self)
             self.sigResized.emit(self)
 
+    def boundingRect(self):
+        br = super().boundingRect()
+        return br.adjusted(0, 0, +0.5, +0.5)
+
     def viewRange(self):
         """Return a the view's visible range as a list: [[xmin, xmax], [ymin, ymax]]"""
         return [x[:] for x in self.state['viewRange']]  ## return copy
@@ -611,7 +615,9 @@ class ViewBox(GraphicsWidget):
 
             # If we requested 0 range, try to preserve previous scale.
             # Otherwise just pick an arbitrary scale.
+            preserve = False
             if mn == mx:
+                preserve = True
                 dy = self.state['viewRange'][ax][1] - self.state['viewRange'][ax][0]
                 if dy == 0:
                     dy = 1
@@ -631,13 +637,14 @@ class ViewBox(GraphicsWidget):
                 raise Exception("Cannot set range [%s, %s]" % (str(mn), str(mx)))
 
             # Apply padding
-            if padding is None:
-                xpad = self.suggestPadding(ax)
-            else:
-                xpad = padding
-            p = (mx-mn) * xpad
-            mn -= p
-            mx += p
+            if not preserve:
+                if padding is None:
+                    xpad = self.suggestPadding(ax)
+                else:
+                    xpad = padding
+                p = (mx-mn) * xpad
+                mn -= p
+                mx += p
 
             # max range cannot be larger than bounds, if they are given
             if limits[ax][0] is not None and limits[ax][1] is not None:
@@ -859,7 +866,7 @@ class ViewBox(GraphicsWidget):
         (if *axis* is omitted, both axes will be changed).
         When enabled, the axis will automatically rescale when items are added/removed or change their shape.
         The argument *enable* may optionally be a float (0.0-1.0) which indicates the fraction of the data that should
-        be visible (this only works with items implementing a dataRange method, such as PlotDataItem).
+        be visible (this only works with items implementing a dataBounds method, such as PlotDataItem).
         """
         # support simpler interface:
         if x is not None or y is not None:
@@ -1540,7 +1547,7 @@ class ViewBox(GraphicsWidget):
             useX = True
             useY = True
 
-            if hasattr(item, 'dataBounds'):
+            if hasattr(item, 'dataBounds') and item.dataBounds is not None:
                 if frac is None:
                     frac = (1.0, 1.0)
                 xr = item.dataBounds(0, frac=frac[0], orthoRange=orthoRange[0])

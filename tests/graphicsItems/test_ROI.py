@@ -3,6 +3,7 @@ import platform
 
 import numpy as np
 import pytest
+from packaging.version import Version, parse
 
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui, QtTest
@@ -244,7 +245,6 @@ def test_PolyLineROI():
          'open')
     ]
 
-    # plt = pg.plot()
     plt = pg.GraphicsView()
     plt.show()
     resizeWindow(plt, 200, 200)
@@ -327,8 +327,12 @@ def test_PolyLineROI():
 
         # call setPoints
         r.setPoints(initState['points'])
-        assertImageApproved(plt, 'roi/polylineroi/' + name + '_setpoints',
-                            'Reset points to initial state.')
+        assertImageApproved(
+            plt,
+            f'roi/polylineroi/{name}_setpoints',
+            'Reset points to initial state.',
+            pxCount=1 if platform.system() == "Darwin" and parse(platform.mac_ver()[0]) >= Version("13.0") else 0
+        )
         assert len(r.getState()['points']) == 3
 
         # call setState
@@ -347,7 +351,8 @@ def test_PolyLineROI():
     ((-2, 1), (-4, -8)),
 ])
 def test_LineROI_coords(p1, p2):
-    pw = pg.plot()
+    pw = pg.PlotWidget()
+    pw.show()
 
     lineroi = pg.LineROI(p1, p2, width=0.5, pen="r")
     pw.addItem(lineroi)

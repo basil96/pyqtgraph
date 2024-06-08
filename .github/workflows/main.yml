@@ -21,7 +21,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install mypy
@@ -34,28 +34,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-14]
         qt-lib: [pyqt, pyside]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12"]
         include:
-          - python-version: "3.9"
+          - python-version: "3.10"
             qt-lib: "pyqt"
             qt-version: "PyQt5~=5.15.0"
-          - python-version: "3.9"
+          - python-version: "3.10"
             qt-lib: "pyside"
             qt-version: "PySide2~=5.15.0"
-          - python-version: "3.10"
+          - python-version: "3.11"
             qt-lib: "pyqt"
             qt-version: "PyQt6~=6.2.0 PyQt6-Qt6~=6.2.0"
-          - python-version: "3.10"
-            qt-lib: "pyside"
-            qt-version: "PySide6~=6.2.0"
           - python-version: "3.11"
+            qt-lib: "pyside"
+            qt-version: "PySide6~=6.4.0"
+          - python-version: "3.12"
             qt-lib: "pyqt"
             qt-version: "PyQt6"
-          - python-version: "3.11"
+          - python-version: "3.12"
             qt-lib: "pyside"
             qt-version: "PySide6-Essentials"
+        exclude:
+          - os: macos-14
+            python-version: "3.10"
+            qt-lib: "pyside"
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -71,7 +75,7 @@ jobs:
         echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
       shell: bash
     - name: pip cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -143,7 +147,7 @@ jobs:
         pytest pyqtgraph/examples -v -n 2
       shell: bash
     - name: Upload Screenshots
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: Screenshots (Python ${{ matrix.python-version }} - Qt-Bindings ${{ matrix.qt-lib }} - OS ${{ matrix.os }})
         path: $SCREENSHOT_DIR
@@ -160,7 +164,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-14]
         qt-lib: [pyqt, pyside]
         include:
           - qt-lib: pyqt
@@ -176,7 +180,7 @@ jobs:
           miniforge-variant: Mambaforge
           environment-file: ${{ matrix.environment-file }}
           auto-update-conda: false
-          python-version: "3.10"
+          python-version: "3.12"
           use-mamba: true
       - name: "Install Test Framework"
         run: pip install pytest pytest-xdist
@@ -253,7 +257,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       - name: Build Wheel
         run: |
           python -m pip install setuptools wheel
@@ -272,15 +276,14 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
     - name: Install Dependencies
       run: |
         python -m pip install PyQt5 numpy scipy
-        echo "CODEQL_PYTHON=$(which python)" >> $GITHUB_ENV
     
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: 'python'
         # Supported options are ['csharp', 'cpp', 'go', 'java', 'javascript', 'python']
@@ -293,7 +296,7 @@ jobs:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -307,4 +310,4 @@ jobs:
     #   make release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3

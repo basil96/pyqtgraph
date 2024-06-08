@@ -8,16 +8,25 @@ from pyqtgraph.functions import eq
 from pyqtgraph.parametertree.parameterTypes import ChecklistParameterItem
 from pyqtgraph.Qt import QtCore, QtGui
 
+import pytest
+
 app = pg.mkQApp()
+
 
 def _getWidget(param):
     return list(param.items.keys())[0].widget
+
+
+def test_typeless_param():
+    p = pt.Parameter.create(name='test', type=None, value=set())
+    p.setValue(range(4))
 
 
 def test_opts():
     paramSpec = [
         dict(name='bool', type='bool', readonly=True),
         dict(name='color', type='color', readonly=True),
+        dict(name='float', type='float', limits=None),
     ]
 
     param = pt.Parameter.create(name='params', type='group', children=paramSpec)
@@ -188,7 +197,10 @@ def test_pen_settings():
     p["width"] = 10
     assert p.pen.width() == 10
 
-
+@pytest.mark.skipif(
+    pg.Qt.QT_LIB == "PySide2" and pg.Qt.QtVersion.startswith("5.15"),
+    reason="Seems to segfault on conda + pyside2 on CI"
+)
 def test_recreate_from_savestate():
     from pyqtgraph.examples import _buildParamTypes
     created = _buildParamTypes.makeAllParamTypes()

@@ -3,7 +3,7 @@ PyQtGraph - Scientific Graphics and GUI Library for Python
 www.pyqtgraph.org
 """
 
-__version__ = '0.13.4.dev0'
+__version__ = '0.13.7'
 
 ### import all the goodies and add some helper functions for easy CLI use
 
@@ -260,6 +260,7 @@ from .WidgetGroup import *
 from .widgets.BusyCursor import *
 from .widgets.CheckTable import *
 from .widgets.ColorButton import *
+from .widgets.ColorMapMenu import ColorMapMenu
 from .widgets.ColorMapWidget import *
 from .widgets.ComboBox import *
 from .widgets.DataFilterWidget import *
@@ -463,5 +464,4 @@ def setPalette(app, style):
         p = style
     else:
         raise TypeError('style either be a string or QPalette')
-    app.paletteChanged.emit(p)
     app.setPalette(p)
